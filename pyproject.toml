@@ -40,6 +40,9 @@ dependencies = [
     "streamlit ~=1.40.1",
     "tiktoken >=0.8.0", # python 3.13 support
     "uvicorn ~=0.32.1",
+    "youtube-search>=2.1.2",
+    "azure-search-documents>=11.5.2",
+    "azure-identity>=1.19.0",
 ]
 
 [dependency-groups]

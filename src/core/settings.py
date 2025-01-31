@@ -14,6 +14,7 @@ from schema.models import (
     GroqModelName,
     OllamaModelName,
     OpenAIModelName,
+    AzureOpenAIModelName,
     Provider,
 )
 
@@ -33,11 +34,13 @@ class Settings(BaseSettings):
     )
     MODE: str | None = None
 
-    HOST: str = "0.0.0.0"
+    HOST: str = "127.0.0.1"
     PORT: int = 8080
 
     AUTH_SECRET: SecretStr | None = None
 
+    AZURE_OPENAI_API_KEY: SecretStr | None = None
+    AZURE_OPENAI_ENDPOINT: str | None = None
     OPENAI_API_KEY: SecretStr | None = None
     DEEPSEEK_API_KEY: SecretStr | None = None
     ANTHROPIC_API_KEY: SecretStr | None = None
@@ -63,6 +66,7 @@ class Settings(BaseSettings):
 
     def model_post_init(self, __context: Any) -> None:
         api_keys = {
+            Provider.AZUREOPENAI: self.AZURE_OPENAI_API_KEY,
             Provider.OPENAI: self.OPENAI_API_KEY,
             Provider.DEEPSEEK: self.DEEPSEEK_API_KEY,
             Provider.ANTHROPIC: self.ANTHROPIC_API_KEY,
@@ -78,6 +82,10 @@ class Settings(BaseSettings):
 
         for provider in active_keys:
             match provider:
+                case Provider.AZUREOPENAI:
+                    if self.DEFAULT_MODEL is None:
+                        self.DEFAULT_MODEL = AzureOpenAIModelName.GPT_4O_MINI
+                    self.AVAILABLE_MODELS.update(set(AzureOpenAIModelName))
                 case Provider.OPENAI:
                     if self.DEFAULT_MODEL is None:
                         self.DEFAULT_MODEL = OpenAIModelName.GPT_4O_MINI

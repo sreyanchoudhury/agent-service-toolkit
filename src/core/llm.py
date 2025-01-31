@@ -7,7 +7,7 @@ from langchain_community.chat_models import FakeListChatModel
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, AzureChatOpenAI
 
 from core.settings import settings
 from schema.models import (
@@ -20,9 +20,11 @@ from schema.models import (
     GroqModelName,
     OllamaModelName,
     OpenAIModelName,
+    AzureOpenAIModelName
 )
 
 _MODEL_TABLE = {
+    AzureOpenAIModelName.GPT_4O_MINI: "gpt-4o-mini",
     OpenAIModelName.GPT_4O_MINI: "gpt-4o-mini",
     OpenAIModelName.GPT_4O: "gpt-4o",
     DeepseekModelName.DEEPSEEK_CHAT: "deepseek-chat",
@@ -39,7 +41,7 @@ _MODEL_TABLE = {
 }
 
 ModelT: TypeAlias = (
-    ChatOpenAI | ChatAnthropic | ChatGoogleGenerativeAI | ChatGroq | ChatBedrock | ChatOllama
+    AzureChatOpenAI | ChatOpenAI | ChatAnthropic | ChatGoogleGenerativeAI | ChatGroq | ChatBedrock | ChatOllama
 )
 
 
@@ -51,6 +53,14 @@ def get_model(model_name: AllModelEnum, /) -> ModelT:
     if not api_model_name:
         raise ValueError(f"Unsupported model: {model_name}")
 
+    if model_name in AzureOpenAIModelName:
+        return AzureChatOpenAI(
+            model=api_model_name, 
+            api_version="2024-08-01-preview", 
+            temperature=0.01, 
+            streaming=True,
+            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT
+        )
     if model_name in OpenAIModelName:
         return ChatOpenAI(model=api_model_name, temperature=0.5, streaming=True)
     if model_name in DeepseekModelName:
